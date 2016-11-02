@@ -4,6 +4,7 @@
   "description": "Drop pins to coordinate events",
   "main": "server/server.js",
   "scripts": {
+    "postinstall": "npm run populate",
     "test": "mocha ./specs",
     "start": "node server/server.js production",
     "populate": "node testData.js"
