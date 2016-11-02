@@ -24,13 +24,20 @@ export default class Map extends Component {
       markers: null,
       modalVisible: false,
     };
+
+    this.setNewEventPinCoords = this.setNewEventPinCoords.bind(this);
+    this.fetchEvents = this.fetchEvents.bind(this);
+    this.openModal = this.openModal.bind(this);
+
   }
 
   setNewEventPinCoords () {
-    this.setState({x: {
-      latitude: this.props.mongoLocation[1] + 0.0005,
-      longitude: this.props.mongoLocation[0] + 0.0005
-    }});
+    this.setState({
+      x: {
+        latitude: this.props.mongoLocation[1] + 0.0005,
+        longitude: this.props.mongoLocation[0] + 0.0005
+      }
+    });
   }
 
   fetchEvents () {
@@ -55,17 +62,26 @@ export default class Map extends Component {
       console.log(err);
     });
   }
+
   componentWillMount () {
     this.setNewEventPinCoords();
     this.fetchEvents();
   }
+
   openModal () {
-    this.setState({modalVisible: true});
+    this.setState({
+      modalVisible: true
+    });
   }
+
   render () {
-    if(this.state.loading){
+    if (this.state.loading) {
       return (
-        <OurDrawer user={this.props.user} topBarFilterVisible={true} topBarName={'Map'} _navigate={ _navigate.bind(this)}>
+        <OurDrawer user={this.props.user}
+          topBarFilterVisible={true}
+          topBarName={'Map'}
+          _navigate={_navigate.bind(this)}
+        >
           <View style={styles.spinner}>
             <Spinner />
           </View>
@@ -74,7 +90,12 @@ export default class Map extends Component {
     }
     else {
       return (
-        <OurDrawer user={this.props.user} topBarFilterVisible={true} topBarName={'Map'} _navigate={ _navigate.bind(this)}>
+        <OurDrawer
+          user={this.props.user}
+          topBarFilterVisible={true}
+          topBarName={'Map'}
+          _navigate={_navigate.bind(this)}
+        >
           <View>
             <MapView
               showsUserLocation={true}
@@ -91,23 +112,31 @@ export default class Map extends Component {
               title='The location of your next event!'
               onDragEnd={(e) => this.setState({ x: e.nativeEvent.coordinate })}
             />
-            {this.state.markers.map(marker => {
-              var tempLoc = {
-                latitude: marker.location[1],
-                longitude: marker.location[0]
-              }
-              return (
-                <MapView.Marker
-                  key={marker._id}
-                  coordinate={tempLoc}
-                  title={marker.name}
-                  pinColor='blue'
-                />
-              );
-            })}
+            {
+              this.state.markers.map(marker => {
+                var tempLoc = {
+                  latitude: marker.location[1],
+                  longitude: marker.location[0]
+                }
+                return (
+                  <MapView.Marker
+                    key={marker._id}
+                    coordinate={tempLoc}
+                    title={marker.name}
+                    pinColor='blue'
+                  />
+                );
+              })
+            }
             </MapView>
-            <NewEventFab onPress={this.openModal.bind(this)}/>
-            <NewEventModal resetPin={this.setNewEventPinCoords.bind(this)} fetchNewEvents={this.fetchEvents.bind(this)} userId={this.props.user._id} eventCoords={this.state.x} modalVisibility={this.state.modalVisible}/>
+            <NewEventFab onPress={this.openModal/>
+            <NewEventModal
+              resetPin={this.setNewEventPinCoords}
+              fetchNewEvents={this.fetchEvents}
+              userId={this.props.user._id}
+              eventCoords={this.state.x}
+              modalVisibility={this.state.modalVisible}
+            />
           </View>
         </OurDrawer>
       );
