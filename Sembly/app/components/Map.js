@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import {
   StatusBar,
   StyleSheet,
@@ -17,21 +17,27 @@ import _navigate from './navigateConfig.js';
 import NewEventFab from './NewEventFab.js';
 
 export default class Map extends Component {
-  constructor (props) {
+  static propTypes {
+    user: PropTypes.object.isRequired,
+    mongoLocation: PropTypes.array.isRequired
+  }
+
+  constructor(props) {
     super(props);
     this.state = {
       loading: true,
       markers: null,
-      modalVisible: false,
+      newEventModalVisible: false,
+      eventModalVisible: false
     };
 
     this.setNewEventPinCoords = this.setNewEventPinCoords.bind(this);
     this.fetchEvents = this.fetchEvents.bind(this);
-    this.openModal = this.openModal.bind(this);
-
+    this.openNewEventModal = this.openNewEventModal.bind(this);
+    this.openEventModal = this.openEventModal.bind(this);
   }
 
-  setNewEventPinCoords () {
+  setNewEventPinCoords() {
     this.setState({
       x: {
         latitude: this.props.mongoLocation[1] + 0.0005,
@@ -40,7 +46,7 @@ export default class Map extends Component {
     });
   }
 
-  fetchEvents () {
+  fetchEvents() {
     fetch('http://localhost:3000/api/events/bundle', {
       method: 'POST',
       headers: {
@@ -56,22 +62,43 @@ export default class Map extends Component {
     })
     .then(data => {
       console.log('inside fetchEvents', data);
-      this.setState({markers: data, loading: false});
+      this.setState({
+        markers: data,
+        loading: false
+      });
     })
     .catch((err) => {
       console.log(err);
     });
   }
 
-  componentWillMount () {
+  componentWillMount() {
     this.setNewEventPinCoords();
     this.fetchEvents();
   }
 
-  openModal () {
+  openNewEventModal() {
     this.setState({
-      modalVisible: true
+      newEventModalVisible: true
     });
+  }
+
+  openEventModal() {
+
+  }
+
+  getEventModal() {
+    if (this.state.eventModalVisible) {
+      return (
+        <EventModal
+          close={this.closeEvent.bind(this)}
+          user={this.props.user}
+          visibility={this.state.eventModal}
+          event={this.state.eventId} />
+      );
+    }
+
+    return null;
   }
 
   render () {
@@ -122,6 +149,7 @@ export default class Map extends Component {
                   <MapView.Marker
                     key={marker._id}
                     coordinate={tempLoc}
+                    onCalloutPress={}
                     title={marker.name}
                     pinColor='blue'
                   />
@@ -129,13 +157,13 @@ export default class Map extends Component {
               })
             }
             </MapView>
-            <NewEventFab onPress={this.openModal/>
+            <NewEventFab onPress={this.openNewEventModal/>
             <NewEventModal
               resetPin={this.setNewEventPinCoords}
               fetchNewEvents={this.fetchEvents}
               userId={this.props.user._id}
               eventCoords={this.state.x}
-              modalVisibility={this.state.modalVisible}
+              modalVisibility={this.state.newEventModalVisible}
             />
           </View>
         </OurDrawer>
