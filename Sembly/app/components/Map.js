@@ -5,19 +5,21 @@ import {
   Text,
   View,
   Navigator,
-  Dimensions
+  Dimensions,
+  TouchableHighlight
 } from 'react-native';
 
 import Spinner from './Spinner.js';
 
 import MapView from 'react-native-maps';
 import NewEventModal from './NewEventModal.js';
+import EventModal from './EventModal';
 import OurDrawer from './OurDrawer.js';
 import _navigate from './navigateConfig.js';
 import NewEventFab from './NewEventFab.js';
 
 export default class Map extends Component {
-  static propTypes {
+  static propTypes = {
     user: PropTypes.object.isRequired,
     mongoLocation: PropTypes.array.isRequired
   }
@@ -28,13 +30,15 @@ export default class Map extends Component {
       loading: true,
       markers: null,
       newEventModalVisible: false,
-      eventModalVisible: false
+      eventModalVisible: false,
+      eventModalId: 0
     };
 
     this.setNewEventPinCoords = this.setNewEventPinCoords.bind(this);
     this.fetchEvents = this.fetchEvents.bind(this);
     this.openNewEventModal = this.openNewEventModal.bind(this);
     this.openEventModal = this.openEventModal.bind(this);
+    this.closeEventModal = this.closeEventModal.bind(this);
   }
 
   setNewEventPinCoords() {
@@ -61,7 +65,6 @@ export default class Map extends Component {
       return data.json();
     })
     .then(data => {
-      console.log('inside fetchEvents', data);
       this.setState({
         markers: data,
         loading: false
@@ -83,18 +86,29 @@ export default class Map extends Component {
     });
   }
 
-  openEventModal() {
+  openEventModal(id) {
+    this.setState({
+      eventModalVisible: true,
+      eventModalId: id
+    });
+  }
 
+  closeEventModal() {
+    this.setState({
+      eventModalVisible: false
+    });
   }
 
   getEventModal() {
     if (this.state.eventModalVisible) {
       return (
         <EventModal
-          close={this.closeEvent.bind(this)}
+          key={this.state.eventModalId}
+          close={this.closeEventModal}
           user={this.props.user}
-          visibility={this.state.eventModal}
-          event={this.state.eventId} />
+          visibility={this.state.eventModalVisible}
+          event={this.state.eventModalId}
+        />
       );
     }
 
@@ -133,12 +147,14 @@ export default class Map extends Component {
                 latitudeDelta: .04,
                 longitudeDelta: .02
             }}>
-            <MapView.Marker draggable
+            <MapView.Marker
+              draggable
               coordinate={this.state.x}
               pinColor='yellow'
               title='The location of your next event!'
               onDragEnd={(e) => this.setState({ x: e.nativeEvent.coordinate })}
             />
+
             {
               this.state.markers.map(marker => {
                 var tempLoc = {
@@ -149,15 +165,22 @@ export default class Map extends Component {
                   <MapView.Marker
                     key={marker._id}
                     coordinate={tempLoc}
-                    onCalloutPress={}
-                    title={marker.name}
-                    pinColor='blue'
-                  />
+                    pinColor="purple"
+                  >
+                    <MapView.Callout width={40} height={40} >
+                      <TouchableHighlight
+                        underlayColor="transparent"
+                        onPress={this.openEventModal.bind(this, marker._id)}
+                      >
+                        <Text>{marker.name}</Text>
+                      </TouchableHighlight>
+                    </MapView.Callout>
+                  </MapView.Marker>
                 );
               })
             }
             </MapView>
-            <NewEventFab onPress={this.openNewEventModal/>
+            <NewEventFab onPress={this.openNewEventModal} />
             <NewEventModal
               resetPin={this.setNewEventPinCoords}
               fetchNewEvents={this.fetchEvents}
@@ -165,6 +188,9 @@ export default class Map extends Component {
               eventCoords={this.state.x}
               modalVisibility={this.state.newEventModalVisible}
             />
+            {
+              this.getEventModal()
+            }
           </View>
         </OurDrawer>
       );
