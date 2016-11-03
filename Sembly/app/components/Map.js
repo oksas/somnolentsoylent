@@ -9,6 +9,10 @@ import {
   TouchableHighlight
 } from 'react-native';
 
+import {
+  MKColor,
+} from 'react-native-material-kit';
+
 import Spinner from './Spinner.js';
 
 import MapView from 'react-native-maps';
@@ -165,7 +169,7 @@ export default class Map extends Component {
                   <MapView.Marker
                     key={marker._id}
                     coordinate={tempLoc}
-                    pinColor="purple"
+                    pinColor={MKColor.Indigo}
                   >
                     <MapView.Callout width={40} height={40} >
                       <TouchableHighlight
